@@ -216,7 +216,7 @@ class LLMService:
         return self.system_prompt.format(rules=rules)
 
     def _clean_html_response(self, content: str) -> str:
-        """Clean LLM response by removing markdown code block markers"""
+        """Clean LLM response by removing markdown code block markers and invalid XML characters"""
         if content is None:
             return ""
 
@@ -232,6 +232,10 @@ class LLMService:
         cleaned = content
         for pattern in patterns:
             cleaned = re.sub(pattern, '', cleaned, flags=re.MULTILINE)
+
+        # Remove invalid XML characters (control characters except tab, newline, carriage return)
+        # Keep only valid Unicode characters: U+0009, U+000A, U+000D, and U+0020-U+DFFF, U+E000-U+FFFD, U+10000-U+10FFFF
+        cleaned = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', cleaned)
 
         return cleaned.strip()
 
@@ -326,18 +330,26 @@ class LLMService:
         )
 
         for chunk in response:
-            if chunk.choices[0].delta.content:
-                content_chunks.append(chunk.choices[0].delta.content)
-                chunk_count += 1
+            # 安全检查：确保 choices 不为空且有 content
+            if not chunk.choices:
+                continue
+            choice = chunk.choices[0]
+            if not choice or not choice.delta:
+                continue
+            if choice.delta.content is None:
+                continue
 
-                if chunk_count % 5 == 0:
-                    elapsed = time.time() - start_time
-                    yield self._create_event(
-                        "llm_receiving",
-                        message="LLM分析中...",
-                        chunks=chunk_count,
-                        elapsed=round(elapsed, 2)
-                    )
+            content_chunks.append(choice.delta.content)
+            chunk_count += 1
+
+            if chunk_count % 5 == 0:
+                elapsed = time.time() - start_time
+                yield self._create_event(
+                    "llm_receiving",
+                    message="LLM分析中...",
+                    chunks=chunk_count,
+                    elapsed=round(elapsed, 2)
+                )
 
         content = ''.join(content_chunks)
         content = self._clean_html_response(content)

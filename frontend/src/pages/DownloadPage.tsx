@@ -10,6 +10,7 @@ import {
   RefreshCw,
   Loader2,
   AlertCircle,
+  Trash2,
 } from 'lucide-react'
 import { Button, Card, BlurFade } from '../components'
 
@@ -28,6 +29,7 @@ interface DownloadItem {
   downloadUrl?: string
   documentBase64?: string
   status: 'ready' | 'downloading' | 'downloaded'
+  deleting?: boolean
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://word-typesetting-assistant.onrender.com'
@@ -159,6 +161,52 @@ const DownloadPage: React.FC = () => {
     // 清除结果并返回上传页面
     localStorage.removeItem('formatResults')
     navigate('/upload')
+  }
+
+  const handleDelete = async (item: DownloadItem) => {
+    if (!confirm(`确定要删除 "${item.name}" 吗？`)) {
+      return
+    }
+
+    // 设置删除中状态
+    setDownloadItems((prev) =>
+      prev.map((i) => (i.id === item.id ? { ...i, deleting: true } : i))
+    )
+
+    try {
+      // 调用后端删除 API
+      const filename = item.name
+      const response = await fetch(`${API_BASE_URL}/delete/${encodeURIComponent(filename)}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.detail || '删除失败')
+      }
+
+      // 从列表中移除该文件
+      setDownloadItems((prev) => prev.filter((i) => i.id !== item.id))
+
+      // 同时更新 localStorage 中的数据
+      try {
+        const resultsStr = localStorage.getItem('formatResults')
+        if (resultsStr) {
+          const results: FormatResult[] = JSON.parse(resultsStr)
+          const updatedResults = results.filter((r) => r.id !== item.id)
+          localStorage.setItem('formatResults', JSON.stringify(updatedResults))
+        }
+      } catch (storageErr) {
+        console.warn('Failed to update localStorage:', storageErr)
+      }
+    } catch (err) {
+      console.error('Delete failed:', err)
+      // 清除删除中状态
+      setDownloadItems((prev) =>
+        prev.map((i) => (i.id === item.id ? { ...i, deleting: false } : i))
+      )
+      alert('删除失败，请重试')
+    }
   }
 
   const downloadedCount = downloadItems.filter(
@@ -334,6 +382,18 @@ const DownloadPage: React.FC = () => {
                         <CheckCircle className="w-5 h-5" />
                       ) : (
                         <Download className="w-5 h-5" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item)}
+                      disabled={item.deleting}
+                      className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="删除"
+                    >
+                      {item.deleting ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-5 h-5" />
                       )}
                     </button>
                   </div>

@@ -205,9 +205,19 @@ def create_app(
                     extracted_text = extract_text_from_docx(tmp_path)
                     os.remove(tmp_path)
                     text = extracted_text
+                except ValueError as e:
+                    os.remove(tmp_path)
+                    # 提取失败时返回明确错误，而不是尝试用文本解码
+                    return StreamingResponse(
+                        iter([json.dumps({"type": "error", "message": f"读取Word文档失败: {str(e)}"})]),
+                        media_type="text/event-stream"
+                    )
                 except Exception as e:
                     os.remove(tmp_path)
-                    text = decode_file_content(content)
+                    return StreamingResponse(
+                        iter([json.dumps({"type": "error", "message": f"读取Word文档时发生错误: {str(e)}"})]),
+                        media_type="text/event-stream"
+                    )
             else:
                 text = decode_file_content(content)
 
@@ -251,7 +261,7 @@ def create_app(
 
                 elements = parse_html_elements(html_content)
                 if not elements:
-                    yield f"data: {json.dumps({'type': 'error', 'message': 'HTML解析后未找到有效元素'}, ensure_ascii=False)}\n\n"
+                    yield f"data: {json.dumps({'type': 'error', 'message': '未能识别文档中的有效内容，请确保文档包含文字内容（如标题、段落等），当前内容可能过于简单或格式不兼容'}, ensure_ascii=False)}\n\n"
                     return
 
                 # Generate Word document
@@ -323,7 +333,7 @@ def create_app(
             # Parse HTML
             elements = parse_html_elements(html)
             if not elements:
-                raise ValueError("HTML解析后未找到有效元素")
+                raise ValueError("未能识别文档中的有效内容，请确保文档包含文字内容（如标题、段落等），当前内容可能过于简单或格式不兼容")
 
             # Generate Word document
             doc = create_word_document(elements, request.rules)
@@ -389,17 +399,21 @@ def create_app(
                     tmp_path = tmp.name
                 try:
                     text = extract_text_from_docx(tmp_path)
-                except Exception:
-                    pass
+                except ValueError as e:
+                    cleanup_temp_file(tmp_path)
+                    return FormatResponse(success=False, message=f"读取Word文档失败: {str(e)}")
+                except Exception as e:
+                    cleanup_temp_file(tmp_path)
+                    return FormatResponse(success=False, message=f"读取Word文档时发生错误: {str(e)}")
                 finally:
                     cleanup_temp_file(tmp_path)
 
-            # Fallback to text decoding
+            # Fallback to text decoding (only for non-docx files)
             if text is None:
                 text = decode_file_content(content)
 
             if not text or text.strip() == '':
-                return FormatResponse(success=False, message="文件解码后内容为空")
+                return FormatResponse(success=False, message="文件解码后内容为空，请确保文件包含可读取的文本内容")
 
             # Process with text formatting
             llm_service = get_llm_service()
@@ -412,7 +426,7 @@ def create_app(
             elements = parse_html_elements(html)
 
             if not elements:
-                raise ValueError("HTML解析后未找到有效元素")
+                raise ValueError("未能识别文档中的有效内容，请确保文档包含文字内容（如标题、段落等），当前内容可能过于简单或格式不兼容")
 
             doc = create_word_document(elements, rules)
 
@@ -463,6 +477,44 @@ def create_app(
             filename=filename,
             media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
+
+    # Delete output file
+    @app.delete("/delete/{filename}", tags=["Files"])
+    async def delete_file(filename: str):
+        """
+        Delete generated file.
+
+        Args:
+            filename: Name of the file to delete
+        """
+        # 安全检查：防止路径遍历攻击
+        import re
+        # 只允许安全的文件名格式（字母、数字、中文、下划线、连字符、点）
+        if not re.match(r'^[\w\u4e00-\u9fff.-]+$', filename):
+            raise HTTPException(status_code=400, detail="无效的文件名")
+
+        # 使用 basename 过滤路径组件
+        safe_filename = os.path.basename(filename)
+
+        config = get_app_config()
+        file_path = os.path.join(config.output_dir, safe_filename)
+
+        # 验证路径在输出目录内
+        output_dir_resolved = os.path.abspath(config.output_dir)
+        file_path_resolved = os.path.abspath(file_path)
+        if not file_path_resolved.startswith(output_dir_resolved):
+            raise HTTPException(status_code=400, detail="无效的文件名")
+
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="文件不存在")
+
+        try:
+            os.remove(file_path)
+            logger.info(f"Deleted file: {safe_filename}")
+            return {"success": True, "message": "文件删除成功"}
+        except Exception as e:
+            logger.error(f"Failed to delete file {safe_filename}: {e}")
+            raise HTTPException(status_code=500, detail="文件删除失败")
 
     return app
 

@@ -82,7 +82,24 @@ const UploadPage: React.FC = () => {
   const processFiles = (fileList: FileList | null) => {
     if (!fileList) return
 
-    const acceptedFiles = Array.from(fileList).filter(
+    const fileArray = Array.from(fileList)
+
+    // 检查不兼容的文件
+    const rejectedFiles = fileArray.filter(
+      (file) => !(file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+              file.type === 'application/msword' ||
+              file.name.endsWith('.docx') ||
+              file.name.endsWith('.doc'))
+    )
+
+    // 如果有不兼容的文件，显示错误提示
+    if (rejectedFiles.length > 0) {
+      const rejectedNames = rejectedFiles.map(f => f.name).join('、')
+      setError(`以下文件格式不支持：${rejectedNames}。请上传 .docx 或 .doc 格式的 Word 文档`)
+      return
+    }
+
+    const acceptedFiles = fileArray.filter(
       (file) => file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
               file.type === 'application/msword' ||
               file.name.endsWith('.docx') ||
@@ -103,10 +120,12 @@ const UploadPage: React.FC = () => {
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
+    setError(null) // 清除之前的错误
     processFiles(e.dataTransfer.files)
   }, [])
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setError(null) // 清除之前的错误
     processFiles(e.target.files)
     // 重置 input 以便可以再次选择相同文件
     if (fileInputRef.current) {
@@ -330,6 +349,9 @@ const UploadPage: React.FC = () => {
               {cleanupInfo.deleted > 0 && ` · 上次清理了 ${cleanupInfo.deleted} 个文件`}
             </p>
           )}
+          <p className="text-xs text-slate-400 mt-3">
+            免责声明：本工具不保证提供完美排版效果，排版质量取决于输入文档的内容结构
+          </p>
         </div>
       </BlurFade>
 

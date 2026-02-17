@@ -33,41 +33,82 @@ async def save_upload_file(
 
 
 def extract_text_from_docx(file_path: str) -> str:
-    """Extract text from a Word document"""
+    """Extract text from a Word document, including paragraphs and tables"""
     try:
         doc = Document(file_path)
-        paragraphs = []
+        text_parts = []
+
+        # Extract paragraph text
         for para in doc.paragraphs:
             if para.text.strip():
-                paragraphs.append(para.text)
-        return '\n'.join(paragraphs)
+                text_parts.append(para.text)
+
+        # Extract table text
+        for table in doc.tables:
+            for row in table.rows:
+                row_text = []
+                for cell in row.cells:
+                    cell_text = cell.text.strip()
+                    if cell_text:
+                        row_text.append(cell_text)
+                if row_text:
+                    text_parts.append(' | '.join(row_text))
+
+        if not text_parts:
+            raise ValueError("文档中未提取到任何文本内容")
+
+        return '\n'.join(text_parts)
+    except ValueError:
+        # Re-raise ValueError with original message
+        raise
     except Exception as e:
         raise ValueError(f"Failed to extract text from DOCX: {e}")
 
 
 def extract_text_from_docx_bytes(docx_bytes: bytes) -> str:
-    """Extract text from Word document bytes (for cloud deployment)"""
+    """Extract text from Word document bytes (for cloud deployment), including paragraphs and tables"""
+    tmp_path = None
     try:
         # Create a temporary file since python-docx needs a file path
         with tempfile.NamedTemporaryFile(suffix='.docx', delete=False) as tmp:
             tmp.write(docx_bytes)
             tmp_path = tmp.name
 
-        try:
-            doc = Document(tmp_path)
-            paragraphs = []
-            for para in doc.paragraphs:
-                if para.text.strip():
-                    paragraphs.append(para.text)
-            return '\n'.join(paragraphs)
-        finally:
-            # Clean up temp file
+        doc = Document(tmp_path)
+        text_parts = []
+
+        # Extract paragraph text
+        for para in doc.paragraphs:
+            if para.text.strip():
+                text_parts.append(para.text)
+
+        # Extract table text
+        for table in doc.tables:
+            for row in table.rows:
+                row_text = []
+                for cell in row.cells:
+                    cell_text = cell.text.strip()
+                    if cell_text:
+                        row_text.append(cell_text)
+                if row_text:
+                    text_parts.append(' | '.join(row_text))
+
+        if not text_parts:
+            raise ValueError("文档中未提取到任何文本内容")
+
+        return '\n'.join(text_parts)
+    except ValueError:
+        # Re-raise ValueError with original message
+        raise
+    except Exception as e:
+        raise ValueError(f"Failed to extract text from DOCX: {e}")
+    finally:
+        # Clean up temp file
+        if tmp_path:
             try:
                 os.remove(tmp_path)
             except OSError:
                 pass
-    except Exception as e:
-        raise ValueError(f"Failed to extract text from DOCX: {e}")
 
 
 def decode_file_content(content: bytes, encodings: list = None) -> str:
