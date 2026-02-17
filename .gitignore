@@ -18,6 +18,8 @@ ENV/
 .env
 .env.local
 .env.*.local
+frontend/.env.production
+frontend/.env.cloudflare
 
 # IDE
 .idea/
