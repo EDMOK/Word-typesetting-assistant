@@ -64,7 +64,7 @@ const HomePage: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto">
       {/* Hero Section */}
-      <section className="py-12 lg:py-24">
+      <section className="py-8 lg:py-24">
         <div className="relative">
           {/* Decorative Elements */}
           <div className="absolute -top-20 -right-20 w-64 h-64 hidden lg:block">
@@ -82,7 +82,7 @@ const HomePage: React.FC = () => {
 
             {/* Main Title */}
             <BlurFade delay={0.2} inView>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold text-slate-800 dark:text-white leading-tight mb-6">
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-display font-bold text-slate-800 dark:text-white leading-tight mb-6">
                 <TextAnimate type="word" variant="slideUp" staggerDelay={0.08}>
                   简单几步
                 </TextAnimate>
@@ -135,16 +135,16 @@ const HomePage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {features.map((feature, index) => (
             <BlurFade key={feature.title} delay={0.1 * (index + 1)} inView>
-              <Card className="h-full" hover>
-                <div className="flex gap-4">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center text-white shadow-lg flex-shrink-0`}>
+              <Card className="h-full" hover padding="sm" >
+                <div className="flex gap-3 sm:gap-4">
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center text-white shadow-lg flex-shrink-0`}>
                     {feature.icon}
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-2">
+                    <h3 className="text-lg sm:text-xl font-semibold text-slate-800 dark:text-white mb-1 sm:mb-2">
                       {feature.title}
                     </h3>
-                    <p className="text-slate-600 dark:text-slate-300">
+                    <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base">
                       {feature.description}
                     </p>
                   </div>
@@ -175,21 +175,21 @@ const HomePage: React.FC = () => {
           <div className="space-y-6">
             {steps.map((step, index) => (
               <BlurFade key={step.number} delay={0.1 * (index + 1)} inView>
-                <div className="flex items-start gap-6">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-400 to-primary-500 text-white flex items-center justify-center font-display font-bold text-lg shadow-lg shadow-primary-500/30 flex-shrink-0 z-10">
+                <div className="flex items-start gap-3 sm:gap-6">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-primary-400 to-primary-500 text-white flex items-center justify-center font-display font-bold text-base sm:text-lg shadow-lg shadow-primary-500/30 flex-shrink-0 z-10">
                     {step.number}
                   </div>
                   <Card className="flex-1 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-300/70 dark:border-slate-600/70" hover>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <div>
-                        <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-1">
+                        <h3 className="text-lg sm:text-xl font-semibold text-slate-800 dark:text-white mb-1">
                           {step.title}
                         </h3>
-                        <p className="text-slate-600 dark:text-slate-300">
+                        <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base">
                           {step.description}
                         </p>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-primary-400" />
+                      <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-primary-400 flex-shrink-0" />
                     </div>
                   </Card>
                 </div>
@@ -202,16 +202,16 @@ const HomePage: React.FC = () => {
       {/* CTA Section */}
       <section className="py-12">
         <BlurFade delay={0.2} inView>
-          <Card className="bg-gradient-to-r from-primary-400 to-primary-500 text-white text-center py-12">
-            <h2 className="text-3xl sm:text-4xl font-display font-bold mb-4">
+          <Card className="bg-gradient-to-r from-primary-400 to-primary-500 text-white text-center py-8 sm:py-12">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold mb-3 sm:mb-4">
               立即体验智能排版
             </h2>
-            <p className="text-primary-100 mb-8 max-w-xl mx-auto">
+            <p className="text-primary-100 mb-6 sm:mb-8 max-w-xl mx-auto text-sm sm:text-base">
               上传你的Word文档，选择或自定义排版规则，让排版变得简单高效
             </p>
             <Link to="/upload">
-              <button className="inline-flex items-center justify-center font-semibold rounded-xl px-8 py-3.5 text-lg gap-2 bg-white text-primary-500 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
-                <Upload className="w-5 h-5" />
+              <button className="inline-flex items-center justify-center font-semibold rounded-xl px-6 py-2.5 sm:px-8 sm:py-3.5 text-base sm:text-lg gap-2 bg-white text-primary-500 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
+                <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
                 开始上传文档
               </button>
             </Link>

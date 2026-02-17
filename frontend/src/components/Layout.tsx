@@ -14,7 +14,7 @@ const Layout: React.FC = () => {
       <Header />
 
       {/* Main Content */}
-      <main className="pt-24 px-4 sm:px-6 lg:px-8 pb-16">
+      <main className="pt-20 sm:pt-24 px-3 sm:px-6 lg:px-8 pb-12 sm:pb-16">
         <Outlet />
       </main>
 

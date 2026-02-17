@@ -363,7 +363,7 @@ const UploadPage: React.FC = () => {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             className={clsx(
-              'border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300',
+              'border-2 border-dashed rounded-xl p-4 sm:p-6 md:p-8 text-center transition-all duration-300',
               isDragging
                 ? 'border-primary-400 bg-primary-50 dark:bg-primary-900/20'
                 : 'border-slate-300 dark:border-slate-600 hover:border-primary-300'
@@ -463,7 +463,7 @@ const UploadPage: React.FC = () => {
 - 行距设置为1.5倍
 - 页边距上下2.54cm，左右3.17cm
 - 一级标题用黑体三号，二级标题用黑体四号"
-                className="w-full h-48 p-4 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white placeholder:text-slate-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full h-32 sm:h-40 md:h-48 p-3 sm:p-4 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white placeholder:text-slate-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
 
               <div className="flex items-center justify-between text-sm text-slate-500">
@@ -627,7 +627,7 @@ const UploadPage: React.FC = () => {
 
       {/* Action Buttons */}
       <BlurFade delay={0.3} inView>
-        <div className="flex justify-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
           <Button
             variant="outline"
             size="lg"

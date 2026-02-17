@@ -270,20 +270,20 @@ const DownloadPage: React.FC = () => {
       {!allDownloaded && downloadItems.length > 0 && (
         <BlurFade delay={0.1} inView>
           <Card className="mb-6 bg-gradient-to-r from-primary-400 to-primary-500 text-white">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h2 className="text-xl font-semibold mb-2">
+                <h2 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2">
                   一键下载全部文件
                 </h2>
-                <p className="text-primary-100">
+                <p className="text-primary-100 text-sm">
                   共 {downloadItems.length} 个文件，{downloadedCount} 个已下载
                 </p>
               </div>
               <button
                 onClick={handleDownloadAll}
-                className="inline-flex items-center justify-center font-semibold rounded-xl px-8 py-3.5 text-lg gap-2 bg-white text-primary-500 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                className="inline-flex items-center justify-center font-semibold rounded-xl px-6 py-2.5 sm:px-8 sm:py-3.5 text-base sm:text-lg gap-2 bg-white text-primary-500 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 whitespace-nowrap"
               >
-                <Download className="w-5 h-5" />
+                <Download className="w-4 h-4 sm:w-5 sm:h-5" />
                 下载全部
               </button>
             </div>
@@ -332,9 +332,9 @@ const DownloadPage: React.FC = () => {
                 key={item.id}
                 className="p-4 rounded-xl border border-slate-200 dark:border-slate-700"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/30 dark:to-primary-800/30 flex items-center justify-center flex-shrink-0">
-                    <FileText className="w-6 h-6 text-primary-500" />
+                <div className="flex items-start gap-3 sm:items-center">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/30 dark:to-primary-800/30 flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-primary-500" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -349,27 +349,27 @@ const DownloadPage: React.FC = () => {
                       原始: {item.originalName}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2">
                     <button
                       onClick={() => handleCopyLink(item)}
-                      className="p-2 rounded-lg text-slate-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
+                      className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
                       title="复制链接"
                     >
-                      <Copy className="w-5 h-5" />
+                      <Copy className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                     <a
                       href={item.downloadUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 rounded-lg text-slate-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
+                      className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
                       title="新窗口打开"
                     >
-                      <ExternalLink className="w-5 h-5" />
+                      <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
                     </a>
                     <button
                       onClick={() => handleDownload(item)}
                       disabled={item.status === 'downloading'}
-                      className={`p-2 rounded-lg transition-colors ${
+                      className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
                         item.status === 'downloaded'
                           ? 'text-success'
                           : 'text-slate-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20'
@@ -377,23 +377,23 @@ const DownloadPage: React.FC = () => {
                       title="下载"
                     >
                       {item.status === 'downloading' ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
                       ) : item.status === 'downloaded' ? (
-                        <CheckCircle className="w-5 h-5" />
+                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                       ) : (
-                        <Download className="w-5 h-5" />
+                        <Download className="w-4 h-4 sm:w-5 sm:h-5" />
                       )}
                     </button>
                     <button
                       onClick={() => handleDelete(item)}
                       disabled={item.deleting}
-                      className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       title="删除"
                     >
                       {item.deleting ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
                       ) : (
-                        <Trash2 className="w-5 h-5" />
+                        <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                       )}
                     </button>
                   </div>
@@ -406,7 +406,7 @@ const DownloadPage: React.FC = () => {
 
       {/* Actions */}
       <BlurFade delay={0.3} inView>
-        <div className="mt-8 flex justify-center gap-4">
+        <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
           <Button
             variant="outline"
             size="lg"
