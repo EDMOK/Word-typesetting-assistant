@@ -173,22 +173,9 @@ const DownloadPage: React.FC = () => {
       prev.map((i) => (i.id === item.id ? { ...i, deleting: true } : i))
     )
 
-    try {
-      // 调用后端删除 API
-      const filename = item.name
-      const response = await fetch(`${API_BASE_URL}/delete/${encodeURIComponent(filename)}`, {
-        method: 'DELETE',
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.detail || '删除失败')
-      }
-
-      // 从列表中移除该文件
+    // 无论成功与否，都从列表中移除该文件并更新 localStorage
+    const removeFromList = () => {
       setDownloadItems((prev) => prev.filter((i) => i.id !== item.id))
-
-      // 同时更新 localStorage 中的数据
       try {
         const resultsStr = localStorage.getItem('formatResults')
         if (resultsStr) {
@@ -198,6 +185,25 @@ const DownloadPage: React.FC = () => {
         }
       } catch (storageErr) {
         console.warn('Failed to update localStorage:', storageErr)
+      }
+    }
+
+    try {
+      // 调用后端删除 API
+      const filename = item.name
+      const response = await fetch(`${API_BASE_URL}/delete/${encodeURIComponent(filename)}`, {
+        method: 'DELETE',
+      })
+
+      // 无论成功还是文件不存在(404)，都从列表中移除
+      if (response.ok || response.status === 404) {
+        removeFromList()
+        if (response.status === 404) {
+          console.warn('文件已不存在于服务器，可能已被自动清理')
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.detail || '删除失败')
       }
     } catch (err) {
       console.error('Delete failed:', err)

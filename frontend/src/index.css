@@ -96,6 +96,10 @@ body {
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
+  /* Mobile viewport fix for iOS Safari and WeChat */
+  min-height: -webkit-fill-available;
+  min-height: 100dvh;
+  overflow-x: hidden;
 }
 
 /* Background Texture - Light Mode */
@@ -291,6 +295,24 @@ body::before {
 
   .nav-container {
     padding: 0 8px;
+  }
+
+  /* Ensure content is scrollable on mobile */
+  html, body {
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Fix for WeChat webview overlapping UI */
+  footer {
+    padding-bottom: max(2rem, env(safe-area-inset-bottom, 20px));
+  }
+
+  /* Prevent text overflow on small screens */
+  * {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
 }
 

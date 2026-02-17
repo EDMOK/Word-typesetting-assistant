@@ -455,15 +455,8 @@ const UploadPage: React.FC = () => {
               <textarea
                 value={customRuleText}
                 onChange={(e) => setCustomRuleText(e.target.value)}
-                placeholder="请输入您的排版规则要求...
-
-例如：
-- 标题使用黑体二号字，居中显示，加粗
-- 正文使用宋体小四号字，首行缩进2字符
-- 行距设置为1.5倍
-- 页边距上下2.54cm，左右3.17cm
-- 一级标题用黑体三号，二级标题用黑体四号"
-                className="w-full h-32 sm:h-40 md:h-48 p-3 sm:p-4 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white placeholder:text-slate-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="请输入您的排版规则要求..."
+                className="w-full h-28 sm:h-36 md:h-44 p-3 sm:p-4 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white placeholder:text-slate-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
               />
 
               <div className="flex items-center justify-between text-sm text-slate-500">
@@ -477,6 +470,20 @@ const UploadPage: React.FC = () => {
                   </button>
                 )}
               </div>
+
+              {/* Collapsible examples for mobile */}
+              <details className="mt-2 text-sm">
+                <summary className="cursor-pointer text-primary-500 hover:text-primary-600">
+                  查看示例规则
+                </summary>
+                <div className="mt-2 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg text-slate-600 dark:text-slate-300 text-xs sm:text-sm space-y-1">
+                  <p>• 标题使用黑体二号字，居中显示，加粗</p>
+                  <p>• 正文使用宋体小四号字，首行缩进2字符</p>
+                  <p>• 行距设置为1.5倍</p>
+                  <p>• 页边距上下2.54cm，左右3.17cm</p>
+                  <p>• 一级标题用黑体三号，二级标题用黑体四号</p>
+                </div>
+              </details>
             </div>
         </Card>
       </BlurFade>
@@ -627,12 +634,13 @@ const UploadPage: React.FC = () => {
 
       {/* Action Buttons */}
       <BlurFade delay={0.3} inView>
-        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 sticky bottom-4 sm:static">
           <Button
             variant="outline"
             size="lg"
             onClick={() => navigate('/')}
             disabled={isProcessing}
+            className="w-full sm:w-auto"
           >
             返回首页
           </Button>
@@ -640,7 +648,7 @@ const UploadPage: React.FC = () => {
             size="lg"
             disabled={files.length === 0 || isProcessing}
             onClick={handleStartProcessing}
-            className="gap-2"
+            className="gap-2 w-full sm:w-auto"
           >
             {isProcessing ? (
               <>

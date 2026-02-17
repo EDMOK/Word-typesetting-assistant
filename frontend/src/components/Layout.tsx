@@ -13,8 +13,8 @@ const Layout: React.FC = () => {
       {/* Header */}
       <Header />
 
-      {/* Main Content */}
-      <main className="pt-20 sm:pt-24 px-3 sm:px-6 lg:px-8 pb-12 sm:pb-16">
+      {/* Main Content - Mobile: allow scroll, ensure content fits */}
+      <main className="pt-20 sm:pt-24 px-3 sm:px-6 lg:px-8 pb-12 sm:pb-16 overflow-y-auto overflow-x-hidden" style={{ minHeight: 'calc(100vh - 56px - 64px)' }}>
         <Outlet />
       </main>
 
