@@ -48,3 +48,5 @@ config.yaml
 *.tmp
 *.temp
 .cache/
+frontend/MOBILE_FIX.md
+.gitignore

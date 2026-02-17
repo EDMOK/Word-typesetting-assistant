@@ -87,6 +87,7 @@
 
 html {
   scroll-behavior: smooth;
+  color-scheme: light;
 }
 
 body {
@@ -212,11 +213,12 @@ body::before {
 
 /* Glass Card Base Style */
 .glass-card {
-  background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.85) 100%);
+  background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.85) 100%) !important;
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255,255,255,0.6);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-glass);
+  color-scheme: light !important;
 }
 
 .glass-card::before {
@@ -234,10 +236,11 @@ body::before {
 
 /* Soft Card Style */
 .soft-card {
-  background: linear-gradient(145deg, rgba(255,255,255,0.8) 0%, rgba(248,250,252,0.7) 100%);
+  background: linear-gradient(145deg, rgba(255,255,255,0.8) 0%, rgba(248,250,252,0.7) 100%) !important;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-soft);
   border: 1px solid rgba(255,255,255,0.5);
+  color-scheme: light !important;
 }
 
 /* Glass Input Style */
@@ -338,4 +341,34 @@ body::before {
   background: rgba(239,68,68,0.1);
   color: #EF4444;
   border: 1px solid rgba(239,68,68,0.15);
+}
+
+/* Force light mode on mobile browsers */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: light !important;
+  }
+  
+  html {
+    color-scheme: light !important;
+  }
+  
+  body {
+    background: var(--bg-page) !important;
+    color: var(--text-primary) !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+  }
+  
+  .glass-card,
+  .soft-card,
+  [class*="bg-white"],
+  [class*="bg-slate"] {
+    background: rgba(255, 255, 255, 0.9) !important;
+    color: var(--text-primary) !important;
+    color-scheme: light !important;
+  }
+  
+  * {
+    color-scheme: light !important;
+  }
 }

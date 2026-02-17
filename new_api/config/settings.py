@@ -8,6 +8,12 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 import yaml
 from pydantic import BaseModel, Field
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+env_path = Path(__file__).parent.parent.parent / ".env"
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path)
 
 
 class LLMConfig(BaseModel):
@@ -90,8 +96,9 @@ class Settings:
             app_config['output_dir'] = os.getenv('OUTPUT_DIR')
         if os.getenv('UPLOAD_DIR'):
             app_config['upload_dir'] = os.getenv('UPLOAD_DIR')
-        if os.getenv('DEBUG'):
-            app_config['debug'] = os.getenv('DEBUG').lower() == 'true'
+        debug_val = os.getenv('DEBUG')
+        if debug_val:
+            app_config['debug'] = debug_val.lower() == 'true'
 
         self._config['app'] = app_config
 
