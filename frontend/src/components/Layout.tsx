@@ -23,7 +23,7 @@ const Layout: React.FC = () => {
         <p className="font-handwritten text-lg mb-2 text-primary-500/80">
           让文档排版变得简单美好
         </p>
-        <p>Word排版助手 v1.0.0</p>
+        <p>Word排版助手 v2.0.0 · Symbian</p>
       </footer>
     </div>
   )
