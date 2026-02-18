@@ -432,6 +432,33 @@ const DownloadPage: React.FC = () => {
         </Card>
       </BlurFade>
 
+      {/* Tips: Usage Tips */}
+      <BlurFade delay={0.5} inView>
+        <Card className="mt-6" soft>
+          <h3 className="font-semibold text-slate-800 dark:text-white mb-3">
+            💡 使用技巧
+          </h3>
+          <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+            <li className="flex items-start gap-2">
+              <span className="text-amber-500 mt-0.5">•</span>
+              <span><strong>输入公式：</strong>在 Word 中按 <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-xs font-mono">Alt</kbd> + <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-xs font-mono">=</kbd> 打开公式编辑器</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-amber-500 mt-0.5">•</span>
+              <span><strong>快速访问：</strong>按 <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-xs font-mono">Alt</kbd> + <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-xs font-mono">Q</kbd> 可快速打开公式工具</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-amber-500 mt-0.5">•</span>
+              <span><strong>实时预览：</strong>排版效果与 Word 文档可能略有差异，建议使用预览功能确认后再下载</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-amber-500 mt-0.5">•</span>
+              <span><strong>兼容性：</strong>如遇格式问题，建议使用 Microsoft Word 打开以获得最佳效果</span>
+            </li>
+          </ul>
+        </Card>
+      </BlurFade>
+
       {/* HTML Preview Modal */}
       {previewItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
