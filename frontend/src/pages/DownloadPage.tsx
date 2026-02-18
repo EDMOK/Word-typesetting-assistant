@@ -11,14 +11,16 @@ import {
   Loader2,
   AlertCircle,
   Trash2,
+  Eye,
+  X,
 } from 'lucide-react'
 import { Button, Card, BlurFade } from '../components'
 
 interface FormatResult {
   id: string
   name: string
-  downloadUrl?: string
-  documentBase64?: string
+  downloadUrl: string
+  htmlContent: string
   success: boolean
 }
 
@@ -26,19 +28,18 @@ interface DownloadItem {
   id: string
   name: string
   originalName: string
-  downloadUrl?: string
-  documentBase64?: string
+  downloadUrl: string
+  htmlContent: string
   status: 'ready' | 'downloading' | 'downloaded'
   deleting?: boolean
 }
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://word-typesetting-assistant.onrender.com'
 
 const DownloadPage: React.FC = () => {
   const navigate = useNavigate()
   const [downloadItems, setDownloadItems] = useState<DownloadItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [previewItem, setPreviewItem] = useState<DownloadItem | null>(null)
 
   useEffect(() => {
     // 从 localStorage 读取处理结果
@@ -54,10 +55,10 @@ const DownloadPage: React.FC = () => {
         const results: FormatResult[] = JSON.parse(resultsStr)
         const items: DownloadItem[] = results.map((result) => ({
           id: result.id,
-          name: result.name.replace(/\.docx?$/i, '_排版后.docx'),
+          name: result.name.replace(/\.docx?$/i, '_排版后.doc'),
           originalName: result.name,
-          downloadUrl: result.downloadUrl ? `${API_BASE_URL}${result.downloadUrl}` : undefined,
-          documentBase64: result.documentBase64,
+          downloadUrl: result.downloadUrl,
+          htmlContent: result.htmlContent,
           status: 'ready',
         }))
 
@@ -80,34 +81,13 @@ const DownloadPage: React.FC = () => {
     )
 
     try {
-      // 支持两种下载方式：URL 或 base64
-      if (item.documentBase64) {
-        // 云部署：使用 base64 下载
-        const byteCharacters = atob(item.documentBase64)
-        const byteNumbers = new Array(byteCharacters.length)
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i)
-        }
-        const byteArray = new Uint8Array(byteNumbers)
-        const blob = new Blob([byteArray], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
-        const url = URL.createObjectURL(blob)
-
-        const link = document.createElement('a')
-        link.href = url
-        link.download = item.name
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        URL.revokeObjectURL(url)
-      } else if (item.downloadUrl) {
-        // 本地部署：使用 URL 下载
-        const link = document.createElement('a')
-        link.href = item.downloadUrl
-        link.download = item.name
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-      }
+      // 使用 blob URL 下载
+      const link = document.createElement('a')
+      link.href = item.downloadUrl
+      link.download = item.name
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
 
       // 标记为已下载
       setTimeout(() => {
@@ -173,7 +153,7 @@ const DownloadPage: React.FC = () => {
       prev.map((i) => (i.id === item.id ? { ...i, deleting: true } : i))
     )
 
-    // 无论成功与否，都从列表中移除该文件并更新 localStorage
+    // 从列表中移除该文件并更新 localStorage
     const removeFromList = () => {
       setDownloadItems((prev) => prev.filter((i) => i.id !== item.id))
       try {
@@ -188,31 +168,20 @@ const DownloadPage: React.FC = () => {
       }
     }
 
-    try {
-      // 调用后端删除 API
-      const filename = item.name
-      const response = await fetch(`${API_BASE_URL}/delete/${encodeURIComponent(filename)}`, {
-        method: 'DELETE',
-      })
-
-      // 无论成功还是文件不存在(404)，都从列表中移除
-      if (response.ok || response.status === 404) {
-        removeFromList()
-        if (response.status === 404) {
-          console.warn('文件已不存在于服务器，可能已被自动清理')
-        }
-      } else {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.detail || '删除失败')
-      }
-    } catch (err) {
-      console.error('Delete failed:', err)
-      // 清除删除中状态
-      setDownloadItems((prev) =>
-        prev.map((i) => (i.id === item.id ? { ...i, deleting: false } : i))
-      )
-      alert('删除失败，请重试')
+    // 释放 blob URL
+    if (item.downloadUrl) {
+      URL.revokeObjectURL(item.downloadUrl)
     }
+    
+    removeFromList()
+  }
+
+  const handlePreview = (item: DownloadItem) => {
+    setPreviewItem(item)
+  }
+
+  const closePreview = () => {
+    setPreviewItem(null)
   }
 
   const downloadedCount = downloadItems.filter(
@@ -357,6 +326,13 @@ const DownloadPage: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-1 sm:gap-2">
                     <button
+                      onClick={() => handlePreview(item)}
+                      className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
+                      title="预览排版效果"
+                    >
+                      <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
+                    <button
                       onClick={() => handleCopyLink(item)}
                       className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
                       title="复制链接"
@@ -450,11 +426,53 @@ const DownloadPage: React.FC = () => {
             </li>
             <li className="flex items-start gap-2">
               <CheckCircle className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
-              <span>复制链接按钮可获取文件的直接下载链接</span>
+              <span>点击预览按钮可查看排版后的 HTML 效果</span>
             </li>
           </ul>
         </Card>
       </BlurFade>
+
+      {/* HTML Preview Modal */}
+      {previewItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-5xl h-[90vh] flex flex-col shadow-2xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
+                  排版预览
+                </h3>
+                <p className="text-sm text-slate-500">{previewItem.originalName}</p>
+              </div>
+              <button
+                onClick={closePreview}
+                className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            {/* Modal Content - HTML Preview */}
+            <div className="flex-1 overflow-auto p-0">
+              <div 
+                className="prose dark:prose-invert max-w-none p-8"
+                dangerouslySetInnerHTML={{ __html: previewItem.htmlContent }}
+              />
+            </div>
+            
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 p-4 border-t border-slate-200 dark:border-slate-700">
+              <Button variant="outline" onClick={closePreview}>
+                关闭
+              </Button>
+              <Button onClick={() => handleDownload(previewItem)}>
+                <Download className="w-4 h-4 mr-2" />
+                下载 Word
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

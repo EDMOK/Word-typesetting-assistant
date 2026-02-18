@@ -28,8 +28,11 @@ interface ProcessingFile {
   status: 'pending' | 'processing' | 'completed' | 'error'
   progress: number
   message?: string
+  subMessage?: string // 次级提示信息
+  stage?: string // 当前阶段
+  elapsedTime?: number // 已用时间（秒）
   downloadUrl?: string
-  documentBase64?: string
+  htmlContent?: string
   error?: string
 }
 
@@ -44,24 +47,6 @@ const UploadPage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [processingFiles, setProcessingFiles] = useState<ProcessingFile[]>([])
-  const [cleanupInfo, setCleanupInfo] = useState<{nextIn: number, deleted: number} | null>(null)
-
-  // Fetch cleanup info on mount
-  React.useEffect(() => {
-    const fetchCleanupInfo = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/cleanup-status`)
-        const data = await res.json()
-        setCleanupInfo({
-          nextIn: data.next_cleanup_in_seconds || 600,
-          deleted: data.files_deleted_last_run || 0
-        })
-      } catch {}
-    }
-    fetchCleanupInfo()
-    const interval = setInterval(fetchCleanupInfo, 60000)
-    return () => clearInterval(interval)
-  }, [])
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`
@@ -159,16 +144,27 @@ const UploadPage: React.FC = () => {
 
     try {
       const rules = getRulesText()
-      const results: { id: string; name: string; downloadUrl: string; documentBase64?: string; success: boolean }[] = []
+      const results: { id: string; name: string; downloadUrl: string; htmlContent: string; success: boolean }[] = []
 
       // 逐个处理文件，使用 SSE 流式 API
       for (let i = 0; i < files.length; i++) {
         const uploadedFile = files[i]
+        const fileStartTime = Date.now()
 
-        // 更新状态为处理中
+        // 更新状态为处理中 - 阶段1: 上传
         setProcessingFiles((prev) =>
           prev.map((pf, idx) =>
-            idx === i ? { ...pf, status: 'processing', progress: 0, message: '正在上传...' } : pf
+            idx === i 
+              ? { 
+                  ...pf, 
+                  status: 'processing', 
+                  progress: 3, 
+                  message: '正在准备文件...',
+                  subMessage: '读取文档内容并上传',
+                  stage: 'upload',
+                  elapsedTime: 0
+                } 
+              : pf
           )
         )
 
@@ -193,15 +189,15 @@ const UploadPage: React.FC = () => {
 
         const decoder = new TextDecoder()
         let buffer = ''
-        let downloadUrl = ''
-        let documentBase64 = ''
+        let htmlContent = ''
         let chunks = 0
         let eventCount = 0
+        let lastProgressUpdate = Date.now()
 
         while (true) {
           const { done, value } = await reader.read()
           if (done) {
-            console.log('[SSE] Stream done, downloadUrl:', downloadUrl)
+            console.log('[SSE] Stream done')
             break
           }
 
@@ -219,51 +215,87 @@ const UploadPage: React.FC = () => {
                 const data = JSON.parse(line.slice(5).trim())
                 const message = data.message || ''
                 let progress = 0
+                let stage = ''
+                let mainMessage = ''
+                let subMessage = ''
 
-                // 根据事件类型计算进度
+                // 根据事件类型计算进度和设置详细提示
                 switch (data.type) {
                   case 'start':
                     progress = 5
+                    stage = 'llm_start'
+                    mainMessage = 'AI 正在分析文档...'
+                    subMessage = '初始化排版引擎'
                     break
                   case 'llm_receiving':
                     // LLM 分析中，根据 chunks 估算进度 10-60%
                     chunks = data.chunks || chunks
                     progress = Math.min(10 + Math.min(chunks, 50), 60)
+                    stage = 'llm_analyzing'
+                    mainMessage = 'AI 正在排版中...'
+                    
+                    // 根据 chunks 数量显示不同的提示
+                    if (chunks < 10) {
+                      subMessage = '正在分析文档结构...'
+                    } else if (chunks < 30) {
+                      subMessage = `已处理 ${chunks} 段内容，正在识别标题和段落...`
+                    } else if (chunks < 50) {
+                      subMessage = `已处理 ${chunks} 段内容，正在应用排版规则...`
+                    } else {
+                      subMessage = `已处理 ${chunks}+ 段内容，即将完成分析...`
+                    }
+                    
+                    // 如果超过10秒没有收到新内容，显示提醒
+                    const timeSinceLastUpdate = Date.now() - lastProgressUpdate
+                    if (timeSinceLastUpdate > 10000) {
+                      subMessage += '（AI正在思考，请稍候...）'
+                    }
+                    lastProgressUpdate = Date.now()
                     break
                   case 'llm_done':
                     progress = 70
+                    stage = 'llm_complete'
+                    mainMessage = 'AI 分析完成'
+                    subMessage = '正在生成排版后的文档'
                     break
                   case 'parsing':
                     progress = 80
+                    stage = 'parsing'
+                    mainMessage = '正在解析排版结果...'
+                    subMessage = '验证文档格式完整性'
                     break
                   case 'complete':
-                    progress = 100
+                    progress = 85
+                    stage = 'html_complete'
+                    mainMessage = '排版结果已生成'
+                    subMessage = '正在准备 Word 文档...'
                     break
                   default:
                     progress = 50
+                    stage = 'processing'
+                    mainMessage = message || '正在处理...'
+                    subMessage = '请稍候'
                 }
 
-                // 更新进度 - 累积保存 downloadUrl（防止后续 complete 事件覆盖之前的）
-                if (data.type === 'complete' && data.download_url) {
-                  downloadUrl = data.download_url
-                  console.log('[SSE] Complete event with download_url:', downloadUrl)
+                // 保存 HTML 内容
+                if (data.type === 'complete' && data.html) {
+                  htmlContent = data.html
+                  console.log('[SSE] Complete event with html content')
                 }
 
-                // 云部署时支持 base64 返回
-                if (data.type === 'complete' && data.document_base64) {
-                  documentBase64 = data.document_base64
-                  console.log('[SSE] Complete event with document_base64')
-                }
+                const currentElapsedTime = Math.floor((Date.now() - fileStartTime) / 1000)
 
                 setProcessingFiles((prev) =>
                   prev.map((pf, idx) =>
                     idx === i
                       ? {
                           ...pf,
-                          progress: data.type === 'complete' ? 100 : Math.min(progress, 95),
-                          message: message || '正在处理...',
-                          downloadUrl: downloadUrl || pf.downloadUrl,
-                          documentBase64: documentBase64 || pf.documentBase64,
+                          progress: data.type === 'complete' ? 85 : Math.min(progress, 82),
+                          message: mainMessage,
+                          subMessage: subMessage,
+                          stage: stage,
+                          elapsedTime: currentElapsedTime,
+                          htmlContent: htmlContent || pf.htmlContent,
                         }
                       : pf
                   )
@@ -279,10 +311,45 @@ const UploadPage: React.FC = () => {
           }
         }
 
-        // 检查是否成功 (支持 URL 或 base64)
-        if (!downloadUrl && !documentBase64) {
-          throw new Error('未能获取下载链接或文档')
+        // 检查是否获取到 HTML
+        if (!htmlContent) {
+          throw new Error('未能获取排版后的 HTML 内容')
         }
+
+        // 阶段4: 转换 Word
+        const elapsedBeforeWord = Math.floor((Date.now() - fileStartTime) / 1000)
+        setProcessingFiles((prev) =>
+          prev.map((pf, idx) =>
+            idx === i 
+              ? { 
+                  ...pf, 
+                  message: '正在生成 Word 文档...', 
+                  subMessage: '将 HTML 转换为可下载的 Word 格式',
+                  stage: 'converting',
+                  progress: 90,
+                  elapsedTime: elapsedBeforeWord
+                } 
+              : pf
+          )
+        )
+
+        const downloadFormData = new FormData()
+        downloadFormData.append('html', htmlContent)
+        downloadFormData.append('filename', uploadedFile.name.replace(/\.docx?$/i, '_排版后.doc'))
+
+        const downloadResponse = await fetch(`${API_BASE_URL}/download/word`, {
+          method: 'POST',
+          body: downloadFormData,
+        })
+
+        if (!downloadResponse.ok) {
+          throw new Error('生成 Word 文档失败')
+        }
+
+        // 阶段5: 完成
+        const totalElapsedTime = Math.floor((Date.now() - fileStartTime) / 1000)
+        const wordBlob = await downloadResponse.blob()
+        const downloadUrl = URL.createObjectURL(wordBlob)
 
         // 更新为完成
         setProcessingFiles((prev) =>
@@ -293,8 +360,11 @@ const UploadPage: React.FC = () => {
                   status: 'completed',
                   progress: 100,
                   message: '处理完成',
+                  subMessage: `用时 ${totalElapsedTime} 秒`,
+                  stage: 'completed',
+                  elapsedTime: totalElapsedTime,
                   downloadUrl,
-                  documentBase64,
+                  htmlContent,
                 }
               : pf
           )
@@ -304,7 +374,7 @@ const UploadPage: React.FC = () => {
           id: uploadedFile.id,
           name: uploadedFile.name,
           downloadUrl,
-          documentBase64,
+          htmlContent,
           success: true,
         })
       }
@@ -343,12 +413,6 @@ const UploadPage: React.FC = () => {
           <p className="text-slate-600 dark:text-slate-300">
             拖拽Word文档到下方区域，或点击选择文件
           </p>
-          {cleanupInfo && (
-            <p className="text-xs text-slate-400 mt-2">
-              文件将在 {Math.ceil(cleanupInfo.nextIn / 60)} 分钟后自动清理
-              {cleanupInfo.deleted > 0 && ` · 上次清理了 ${cleanupInfo.deleted} 个文件`}
-            </p>
-          )}
           <p className="text-xs text-slate-400 mt-3">
             免责声明：本工具不保证提供完美排版效果，排版质量取决于输入文档的内容结构
           </p>
@@ -604,6 +668,7 @@ const UploadPage: React.FC = () => {
                             : `${file.progress}%`}
                         </span>
                       </div>
+                      {/* Progress Bar */}
                       <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
                         <div
                           className={clsx(
@@ -617,12 +682,94 @@ const UploadPage: React.FC = () => {
                           style={{ width: `${file.progress}%` }}
                         />
                       </div>
-                      {file.message && (
-                        <p className="text-xs text-slate-500 mt-1">{file.message}</p>
-                      )}
-                      {file.error && (
-                        <p className="text-xs text-red-500 mt-1">{file.error}</p>
-                      )}
+                      
+                      {/* Status Messages */}
+                      <div className="mt-2 space-y-1">
+                        {/* Main Message */}
+                        {file.message && (
+                          <div className="flex items-center gap-2">
+                            {file.status === 'processing' && (
+                              <Loader2 className="w-3 h-3 text-primary-500 animate-spin" />
+                            )}
+                            <p className={clsx(
+                              'text-sm font-medium',
+                              file.status === 'completed' 
+                                ? 'text-success' 
+                                : file.status === 'error'
+                                ? 'text-red-500'
+                                : 'text-primary-600 dark:text-primary-400'
+                            )}>
+                              {file.message}
+                            </p>
+                          </div>
+                        )}
+                        
+                        {/* Sub Message */}
+                        {file.subMessage && file.status === 'processing' && (
+                          <p className="text-xs text-slate-400 dark:text-slate-500">
+                            {file.subMessage}
+                          </p>
+                        )}
+                        
+                        {/* Elapsed Time & Stage */}
+                        {file.status === 'processing' && file.elapsedTime !== undefined && (
+                          <div className="flex items-center gap-2 text-xs text-slate-400">
+                            <span>⏱️ 已用时间: {file.elapsedTime} 秒</span>
+                            {file.elapsedTime > 30 && (
+                              <span className="text-amber-500">（文档较大，请耐心等待...）</span>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Processing Stage Indicators */}
+                        {file.status === 'processing' && file.stage && (
+                          <div className="flex items-center gap-1 mt-2">
+                            {[
+                              { id: 'upload', label: '上传' },
+                              { id: 'llm_start', label: '启动' },
+                              { id: 'llm_analyzing', label: 'AI分析' },
+                              { id: 'llm_complete', label: '分析完成' },
+                              { id: 'parsing', label: '解析' },
+                              { id: 'html_complete', label: '生成HTML' },
+                              { id: 'converting', label: '转Word' },
+                            ].map((step, index) => {
+                              const isActive = file.stage === step.id
+                              const isPast = [
+                                'upload', 'llm_start', 'llm_analyzing', 'llm_complete', 
+                                'parsing', 'html_complete', 'converting'
+                              ].indexOf(file.stage || '') > [
+                                'upload', 'llm_start', 'llm_analyzing', 'llm_complete',
+                                'parsing', 'html_complete', 'converting'
+                              ].indexOf(step.id)
+                              
+                              return (
+                                <div key={step.id} className="flex items-center">
+                                  <div
+                                    className={clsx(
+                                      'px-2 py-0.5 rounded text-[10px] font-medium transition-colors',
+                                      isActive
+                                        ? 'bg-primary-500 text-white'
+                                        : isPast
+                                        ? 'bg-primary-100 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400'
+                                        : 'bg-slate-100 text-slate-400 dark:bg-slate-700'
+                                    )}
+                                  >
+                                    {step.label}
+                                  </div>
+                                  {index < 6 && (
+                                    <div className="w-1 h-px bg-slate-300 dark:bg-slate-600 mx-0.5" />
+                                  )}
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
+                        
+                        {/* Error Message */}
+                        {file.error && (
+                          <p className="text-xs text-red-500 mt-1">{file.error}</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

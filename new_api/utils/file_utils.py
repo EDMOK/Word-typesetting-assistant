@@ -1,35 +1,12 @@
 """
 Utility functions for file operations.
 """
-import io
 import os
-import hashlib
-import uuid
 import tempfile
 import logging
-from pathlib import Path
-from typing import Optional, Tuple, Union
-import aiofiles
 from docx import Document
 
 logger = logging.getLogger(__name__)
-
-
-async def save_upload_file(
-    file_content: bytes,
-    filename: str,
-    upload_dir: str = "uploads"
-) -> str:
-    """Save uploaded file to disk"""
-    os.makedirs(upload_dir, exist_ok=True)
-    file_ext = Path(filename).suffix.lower() if '.' in filename else ''
-    unique_name = f"{hash(filename)}_{uuid.uuid4().hex[:8]}{file_ext}"
-    file_path = os.path.join(upload_dir, unique_name)
-
-    async with aiofiles.open(file_path, 'wb') as f:
-        await f.write(file_content)
-
-    return file_path
 
 
 def extract_text_from_docx(file_path: str) -> str:
@@ -111,7 +88,7 @@ def extract_text_from_docx_bytes(docx_bytes: bytes) -> str:
                 pass
 
 
-def decode_file_content(content: bytes, encodings: list = None) -> str:
+def decode_file_content(content: bytes, encodings=None) -> str:
     """Decode file content with multiple encoding attempts"""
     if encodings is None:
         encodings = ['utf-8', 'gbk', 'gb2312', 'gb18030', 'latin-1']
@@ -125,33 +102,6 @@ def decode_file_content(content: bytes, encodings: list = None) -> str:
     return content.decode('utf-8', errors='ignore')
 
 
-def generate_output_path(
-    content: str,
-    output_dir: str = "outputs",
-    extension: str = ".docx"
-) -> Tuple[str, str]:
-    """Generate unique output file path based on content hash + timestamp + random"""
-    import time
-    import random
-
-    os.makedirs(output_dir, exist_ok=True)
-    # 加上时间戳和随机数，避免相同内容冲突
-    content_hash = hashlib.md5(content.encode('utf-8')).hexdigest()[:8]
-    timestamp = int(time.time() * 1000)
-    random_suffix = random.randint(1000, 9999)
-    filename = f"{content_hash}_{timestamp}_{random_suffix}{extension}"
-    file_path = os.path.join(output_dir, filename)
-    return filename, file_path
-
-
-def get_file_size(file_path: str) -> int:
-    """Get file size in bytes"""
-    try:
-        return os.path.getsize(file_path)
-    except OSError:
-        return 0
-
-
 def cleanup_temp_file(file_path: str) -> None:
     """Remove temporary file if exists"""
     try:
@@ -159,43 +109,3 @@ def cleanup_temp_file(file_path: str) -> None:
             os.remove(file_path)
     except OSError:
         pass
-
-
-def cleanup_old_outputs(output_dir: str, hours: int = 0, minutes: int = 10) -> int:
-    """
-    Clean up old output files older than specified time.
-
-    Args:
-        output_dir: Directory to clean
-        hours: Delete files older than this many hours
-        minutes: Delete files older than this many minutes (default: 10)
-
-    Returns:
-        Number of files deleted
-    """
-    import time
-    if not os.path.exists(output_dir):
-        return 0
-
-    current_time = time.time()
-    # Use minutes by default if hours is 0
-    if hours > 0:
-        threshold_seconds = hours * 3600
-    else:
-        threshold_seconds = minutes * 60
-
-    deleted_count = 0
-
-    for filename in os.listdir(output_dir):
-        file_path = os.path.join(output_dir, filename)
-        try:
-            if os.path.isfile(file_path):
-                file_age = current_time - os.path.getmtime(file_path)
-                if file_age > threshold_seconds:
-                    os.remove(file_path)
-                    deleted_count += 1
-                    logger.info(f"Deleted old output file: {filename}")
-        except OSError as e:
-            logger.warning(f"Failed to delete {filename}: {e}")
-
-    return deleted_count
