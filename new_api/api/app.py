@@ -190,6 +190,8 @@ def create_app(
                     return
 
                 # Post-process HTML (word-to-html-tool style)
+                yield f"data: {json.dumps({'type': 'parsing', 'message': '正在解析排版结果...'}, ensure_ascii=False)}\n\n"
+                
                 processed_html, is_valid, errors = html_service.process_html(html_content)
                 
                 yield f"data: {json.dumps({
