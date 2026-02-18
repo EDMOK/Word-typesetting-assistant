@@ -218,6 +218,34 @@ const HomePage: React.FC = () => {
           </Card>
         </BlurFade>
       </section>
+
+      {/* Author Section */}
+      <section className="py-8">
+        <BlurFade delay={0.3} inView>
+          <div className="flex flex-col items-center gap-4">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              关注作者，获取更多教程
+            </p>
+            <a
+              href="https://space.bilibili.com/291892724?spm_id_from=333.788.0.0"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 px-6 py-3 rounded-xl bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 text-white font-medium shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 group"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2 6.5C2 5.12 3.12 4 4.5 4h15C20.88 4 22 5.12 22 6.5v11c0 1.38-1.12 2.5-2.5 2.5h-15C3.12 20 2 18.88 2 17.5v-11zm4.5 2c.83 0 1.5.67 1.5 1.5S7.33 12 6.5 12 5 11.33 5 10.5 5.67 9 6.5 9zm3.5 1.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm7 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm-10.5 3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5zm7 0c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5z"/>
+              </svg>
+              <span>Bilibili 主页</span>
+              <svg className="w-4 h-4 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+            <p className="text-xs text-slate-400 dark:text-slate-500">
+              欢迎关注 · 定期更新教程和使用技巧
+            </p>
+          </div>
+        </BlurFade>
+      </section>
     </div>
   )
 }
