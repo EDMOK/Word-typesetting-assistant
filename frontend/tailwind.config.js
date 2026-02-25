@@ -42,6 +42,8 @@ export default {
         'gradient-shift': 'gradient-shift 3s ease infinite',
         'fade-in': 'fade-in 0.4s ease-out',
         'slide-up': 'slide-up 0.4s ease-out',
+        'zoom-in-95': 'zoom-in-95 0.3s ease-out',
+        'modal-backdrop': 'modal-backdrop 0.3s ease-out',
       },
       keyframes: {
         float: {

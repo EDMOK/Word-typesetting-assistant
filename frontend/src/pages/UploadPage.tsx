@@ -36,7 +36,7 @@ interface ProcessingFile {
   error?: string
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://word-typesetting-assistant.onrender.com'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 const UploadPage: React.FC = () => {
   const navigate = useNavigate()

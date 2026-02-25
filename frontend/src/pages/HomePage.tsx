@@ -13,26 +13,26 @@ import { Button, Card, BlurFade, TextAnimate, DocumentThumb } from '../component
 const features = [
   {
     icon: <Sparkles className="w-6 h-6" />,
-    title: '智能排版',
-    description: 'AI驱动的自动排版，智能识别文档结构，一键优化格式',
+    title: '自动排版',
+    description: '自动识别标题、段落、列表，调整格式一步到位',
     gradient: 'from-primary-400 to-primary-500',
   },
   {
     icon: <Clock className="w-6 h-6" />,
     title: '批量处理',
-    description: '支持批量上传多个文件，批量应用排版规则，效率倍增',
+    description: '一次上传多个文件，统一排版，省时省力',
     gradient: 'from-success to-emerald-500',
   },
   {
     icon: <Shield className="w-6 h-6" />,
-    title: '安全可靠',
-    description: '本地处理或云端加密传输，确保文档内容安全不泄露',
+    title: '数据安全',
+    description: '排版过程全程加密，保护文档隐私安全',
     gradient: 'from-violet-400 to-violet-500',
   },
   {
     icon: <Palette className="w-6 h-6" />,
-    title: '自定义规则',
-    description: '灵活配置排版规则，自定义字体、间距、页边距等参数',
+    title: '灵活设置',
+    description: '字体、行距、页边距，按自己习惯来',
     gradient: 'from-amber-400 to-orange-500',
   },
 ]
@@ -67,8 +67,25 @@ const HomePage: React.FC = () => {
       <section className="py-8 lg:py-24">
         <div className="relative">
           {/* Decorative Elements */}
-          <div className="absolute -top-20 -right-20 w-64 h-64 hidden lg:block">
-            <DocumentThumb />
+          <div className="absolute -top-20 -right-20 w-96 h-96 hidden lg:block pointer-events-none">
+            {/* Gradient Orbs */}
+            <div className="absolute top-10 right-10 w-72 h-72 bg-gradient-to-br from-primary-200/40 via-violet-200/30 to-transparent rounded-full blur-3xl animate-pulse" />
+            <div className="absolute top-20 right-0 w-64 h-64 bg-gradient-to-br from-amber-200/30 via-orange-200/20 to-transparent rounded-full blur-2xl animate-pulse delay-1000" />
+
+            {/* Floating Shapes */}
+            <div className="absolute top-0 right-32 w-32 h-32 bg-gradient-to-br from-primary-300/60 to-primary-400/40 rounded-2xl rotate-12 animate-float shadow-lg" />
+            <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-br from-violet-300/60 to-violet-400/40 rounded-full animate-float-delayed shadow-lg" />
+            <div className="absolute top-24 right-60 w-20 h-20 bg-gradient-to-br from-amber-300/60 to-orange-400/40 rounded-lg -rotate-12 animate-float-slow shadow-md" />
+
+            {/* Document Thumb */}
+            <div className="absolute top-16 right-40 transform rotate-6 animate-float-gentle">
+              <DocumentThumb />
+            </div>
+
+            {/* Sparkle Effects */}
+            <div className="absolute top-8 right-16 w-2 h-2 bg-primary-400 rounded-full animate-ping" />
+            <div className="absolute top-52 right-48 w-2 h-2 bg-violet-400 rounded-full animate-ping delay-500" />
+            <div className="absolute top-36 right-8 w-1.5 h-1.5 bg-amber-400 rounded-full animate-ping delay-700" />
           </div>
 
           <div className="max-w-3xl">
@@ -97,7 +114,7 @@ const HomePage: React.FC = () => {
             {/* Subtitle */}
             <BlurFade delay={0.4} inView>
               <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 mb-8 max-w-2xl">
-                告别繁琐的手动排版，让Word文档自动完成专业级排版。支持自定义规则，批量处理，效率倍增。
+                把文档丢进去，想怎么排就怎么排。不用再一个个调格式，省点时间做正事。
               </p>
             </BlurFade>
 
@@ -120,14 +137,31 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-12">
+      <section className="py-12 relative">
+        {/* Decorative Background Elements */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {/* Left side decorations */}
+          <div className="absolute -left-32 top-20 w-80 h-80 bg-gradient-to-br from-primary-100/30 via-violet-100/20 to-transparent rounded-full blur-3xl" />
+          <div className="absolute left-10 top-40 w-16 h-16 bg-gradient-to-br from-success/40 to-emerald-400/30 rounded-2xl rotate-45 animate-float-slow shadow-md" />
+          <div className="absolute left-20 top-10 w-8 h-8 bg-gradient-to-br from-primary-400/50 to-primary-500/40 rounded-full animate-float shadow-sm" />
+
+          {/* Right side decorations */}
+          <div className="absolute -right-40 bottom-20 w-96 h-96 bg-gradient-to-br from-violet-100/25 via-amber-100/15 to-transparent rounded-full blur-3xl" />
+          <div className="absolute right-16 bottom-32 w-20 h-20 bg-gradient-to-br from-violet-300/40 to-violet-400/30 rounded-xl -rotate-12 animate-float-delayed shadow-md" />
+          <div className="absolute right-32 bottom-10 w-12 h-12 bg-gradient-to-br from-amber-300/50 to-orange-400/40 rounded-lg rotate-12 animate-float shadow-sm" />
+
+          {/* Center floating elements */}
+          <div className="absolute left-1/2 top-32 transform -translate-x-1/2 w-6 h-6 bg-primary-400/60 rounded-full animate-ping" />
+          <div className="absolute left-1/3 bottom-20 w-4 h-4 bg-violet-400/60 rounded-full animate-ping delay-1000" />
+          <div className="absolute right-1/3 top-16 w-3 h-3 bg-success/60 rounded-full animate-ping delay-500" />
+        </div>
         <BlurFade delay={0.2} inView>
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-display font-bold text-slate-800 dark:text-white mb-4">
               核心功能
             </h2>
             <p className="text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-              智能、高效、易用，满足各种文档排版需求
+              几个实用功能，帮你把排版这件事干完
             </p>
           </div>
         </BlurFade>
@@ -156,7 +190,23 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Steps Section */}
-      <section className="py-12">
+      <section className="py-12 relative">
+        {/* Decorative Background Elements */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {/* Gradient orbs */}
+          <div className="absolute -left-20 top-32 w-64 h-64 bg-gradient-to-br from-primary-200/20 via-primary-100/15 to-transparent rounded-full blur-2xl animate-pulse" />
+          <div className="absolute -right-32 bottom-40 w-80 h-80 bg-gradient-to-br from-violet-200/15 via-amber-200/10 to-transparent rounded-full blur-3xl animate-pulse delay-1000" />
+
+          {/* Floating geometric shapes */}
+          <div className="absolute right-20 top-20 w-14 h-14 bg-gradient-to-br from-primary-300/50 to-primary-400/40 rounded-2xl rotate-45 animate-float shadow-lg" />
+          <div className="absolute left-16 bottom-32 w-18 h-18 bg-gradient-to-br from-violet-300/50 to-violet-400/40 rounded-full animate-float-delayed shadow-lg" />
+          <div className="absolute right-40 bottom-16 w-10 h-10 bg-gradient-to-br from-amber-300/50 to-orange-400/40 rounded-lg -rotate-12 animate-float-slow shadow-md" />
+
+          {/* Small accent dots */}
+          <div className="absolute left-1/4 top-16 w-2 h-2 bg-primary-400 rounded-full animate-ping" />
+          <div className="absolute right-1/4 bottom-24 w-2 h-2 bg-violet-400 rounded-full animate-ping delay-700" />
+          <div className="absolute left-2/3 top-40 w-1.5 h-1.5 bg-success rounded-full animate-ping delay-300" />
+        </div>
         <BlurFade delay={0.2} inView>
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-display font-bold text-slate-800 dark:text-white mb-4">
