@@ -1,0 +1,23 @@
+# Core dependencies
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+pydantic>=2.0.0
+
+# Document processing (only for reading Word files)
+python-docx>=1.0.0
+
+# LLM API
+openai>=1.0.0
+
+# File handling
+python-multipart>=0.0.6
+aiofiles>=23.0.0
+
+# Configuration
+pyyaml>=6.0.0
+
+# Development (optional)
+# pytest>=7.0.0
+# pytest-asyncio>=0.21.0
+# black>=23.0.0
+# isort>=5.12.0

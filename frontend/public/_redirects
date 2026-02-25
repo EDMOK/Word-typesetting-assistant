@@ -1,0 +1,4 @@
+# Cloudflare Pages SPA 路由重定向配置
+# 所有路由都重定向到 index.html，由 React Router 处理
+
+/*    /index.html   200

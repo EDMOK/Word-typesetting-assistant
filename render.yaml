@@ -1,0 +1,21 @@
+# Render 部署配置
+services:
+  - type: web
+    name: word-typesetting-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn new_api.api.app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: CLOUD_DEPLOYMENT
+        value: true
+      - key: LLM_API_KEY
+        sync: false  # 在 Render Dashboard 中设置
+      - key: LLM_BASE_URL
+        value: https://api-inference.modelscope.cn/v1/
+      - key: LLM_STREAM_MODEL
+        value: Qwen/Qwen3-Next-80B-A3B-Instruct
+      - key: LLM_NON_STREAM_MODEL
+        value: Qwen/Qwen3-Next-80B-A3B-Instruct
+      - key: LLM_TEMPERATURE
+        value: "0.1"
